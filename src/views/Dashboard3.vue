@@ -5,7 +5,7 @@ import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import ReferralsService from '@/service/ReferralsService';
 
 const filters1 = ref(null);
-const loading1 = ref(null);
+const loading2 = ref(null);
 const referrals = ref(null);
 const expandedRows = ref([]);
 
@@ -14,13 +14,17 @@ const referralsService = new ReferralsService();
 const initFilters1 = () => {
     filters1.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        category: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
-        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
-        address1: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] }
+        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     };
 };
 const clearFilter1 = () => {
     initFilters1();
+};
+const expandAll = () => {
+    expandedRows.value = referrals.value.filter((p) => p.name);
+};
+const collapseAll = () => {
+    expandedRows.value = null;
 };
 const referralsTotal = (category) => {
     let total = 0;
@@ -39,7 +43,7 @@ const { isDarkTheme } = useLayout();
 
 const lineOptions = ref(null);
 onMounted(() => {
-    loading1.value = false;
+    loading2.value = false;
 
     referralsService.getReferralDataFetch().then((data) => {
         referrals.value = data;
@@ -125,34 +129,7 @@ watch(
         <div class="col-12">
             <div class="card">
                 <h5>Chatham University Referrals</h5>
-                <DataTable
-                    :value="referrals"
-                    v-model:expandedRows="expandedRows"
-                    rowGroupMode="subheader"
-                    groupRowsBy="category"
-                    sortMode="single"
-                    sortField="category"
-                    :sortOrder="1"
-                    scrollable
-                    scrollHeight="600px"
-                    v-model:filters="filters1"
-                    filterDisplay="menu"
-                    :filters="filters1"
-                    responsiveLayout="scroll"
-                    :globalFilterFields="['category', 'name']"
-                >
-                    <!--template #header>
-                        <div class="flex justify-content-between flex-column sm:flex-row">
-                            <Button type="button" icon="pi pi-filter-slash" label="Clear" class="p-button-outlined mb-2" @click="clearFilter1()" />
-                            <span class="p-input-icon-left mb-2">
-                                <i class="pi pi-search" />
-                                <InputText v-model="filters1['global'].value" placeholder="Keyword Search" style="width: 100%" />
-                            </span>
-                        </div>
-                    </template-->
-                    <template #empty> No referrals found. </template>
-                    <template #loading> Loading referrals data. Please wait. </template>
-
+                <DataTable :value="referrals" v-model:expandedRows="expandedRows" rowGroupMode="subheader" groupRowsBy="category" sortMode="single" sortField="category" :sortOrder="1" scrollable scrollHeight="400px">
                     <Column :expander="true" headerStyle="min-width: 3rem" />
                     <Column field="name" header="Name" style="min-width: 200px"></Column>
                     <Column header="Address" style="min-width: 300px">

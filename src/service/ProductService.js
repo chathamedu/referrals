@@ -1,7 +1,7 @@
 export default class ProductService {
     getProductsSmall() {
         return fetch('demo/data/products-small.json')
-            .then((res) => res.json())
+            .then((res) => res.text())
             .then((d) => d.data);
     }
 

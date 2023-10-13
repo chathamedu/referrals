@@ -3,6 +3,7 @@ import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import CustomerService from '@/service/CustomerService';
 import ProductService from '@/service/ProductService';
 import { ref, onBeforeMount } from 'vue';
+import ReferralsService from '@/service/ReferralsService';
 
 const customer1 = ref(null);
 const customer2 = ref(null);
@@ -14,6 +15,7 @@ const idFrozen = ref(false);
 const products = ref(null);
 const expandedRows = ref([]);
 const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal', 'proposal']);
+const referrals = ref(null);
 const representatives = ref([
     { name: 'Amy Elsner', image: 'amyelsner.png' },
     { name: 'Anna Fali', image: 'annafali.png' },
@@ -29,9 +31,12 @@ const representatives = ref([
 
 const customerService = new CustomerService();
 const productService = new ProductService();
-
+const referralsService = new ReferralsService();
 onBeforeMount(() => {
-    productService.getProductsWithOrdersSmall().then((data) => (products.value = data));
+    productService.getProductsWithOrdersSmall().then((data) => {
+        products.value = data;
+        console.log(data);
+    });
     customerService.getCustomersLarge().then((data) => {
         customer1.value = data;
         loading1.value = false;
@@ -40,6 +45,10 @@ onBeforeMount(() => {
     customerService.getCustomersLarge().then((data) => (customer2.value = data));
     customerService.getCustomersMedium().then((data) => (customer3.value = data));
     loading2.value = false;
+    referralsService.getReferralDataFetch().then((data) => {
+        referrals.value = data;
+        console.log(data);
+    });
 
     initFilters1();
 });
@@ -83,6 +92,21 @@ const calculateCustomerTotal = (name) => {
     if (customer3.value) {
         for (let customer of customer3.value) {
             if (customer.representative.name === name) {
+                total++;
+            }
+        }
+    }
+
+    return total;
+};
+
+const referralsTotal = (category) => {
+    let total = 0;
+    console.log(category);
+    if (referrals.value) {
+        for (let referral of referrals.value) {
+            // console.log(rec);
+            if (referral.category === category) {
                 total++;
             }
         }
@@ -362,6 +386,23 @@ const calculateCustomerTotal = (name) => {
                     </template>
                     <template #groupfooter="slotProps">
                         <td style="text-align: right" class="text-bold pr-6">Total Customers: {{ calculateCustomerTotal(slotProps.data.representative.name) }}</td>
+                    </template>
+                </DataTable>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <h5>Chatham University Referals</h5>
+                <DataTable :value="referrals" rowGroupMode="subheader" groupRowsBy="category" sortMode="single" sortField="category" :sortOrder="1" scrollable scrollHeight="400px">
+                    <Column field="category" header="Categary"></Column>
+                    <Column field="name" header="Name" style="min-width: 200px"></Column>
+                    <Column field="state" header="Address" style="min-width: 300px"></Column>
+                    <template #groupheader="slotProps">
+                        <span class="image-text font-bold ml-2">{{ slotProps.data.category }}</span>
+                    </template>
+                    <template #groupfooter="slotProps">
+                        <td style="text-align: right" class="text-bold pr-6">Total Referrals: {{ referralsTotal(slotProps.data.category) }}</td>
                     </template>
                 </DataTable>
             </div>
