@@ -2,7 +2,7 @@ import Papa from 'papaparse';
 
 export default class ReferralsService {
     getReferralData() {
-        let data = Papa.parse('http://localhost:5173/assets/data/referrals.csv');
+        let data = Papa.parse('assets/data/referrals.csv');
         console.log('Finished:', data);
         return data;
     }
@@ -28,9 +28,14 @@ export default class ReferralsService {
                         phone: row[9],
                         fax: row[10],
                         email: row[11],
-                        note1: row[12],
-                        note2: row[13],
-                        note3: row[14]
+                        ins1: row[12],
+                        ins2: row[13],
+                        ins3: row[14],
+                        note1: row[15],
+                        note2: row[16],
+                        note3: row[17],
+                        note4: row[18],
+                        note5: row[19]
                     };
                     records.push(rec);
                 });

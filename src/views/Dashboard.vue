@@ -170,9 +170,14 @@ watch(
                                 <span v-if="slotProps.data.phone !== null && slotProps.data.phone.length > 0">Phone: {{ slotProps.data.phone }} <br /></span>
                                 <span v-if="slotProps.data.fax !== null && slotProps.data.fax.length > 0">Fax: {{ slotProps.data.fax }} <br /></span>
                                 <span v-if="slotProps.data.email !== null && slotProps.data.email.length > 0">Email: {{ slotProps.data.email }} <br /></span>
+                                <span v-if="slotProps.data.ins1 !== null && slotProps.data.ins1.length > 0">Website: {{ slotProps.data.ins1 }} <br /></span>
+                                <span v-if="slotProps.data.ins2 !== null && slotProps.data.ins2.length > 0">Insurance: {{ slotProps.data.ins2 }} <br /></span>
+                                <span v-if="slotProps.data.ins3 !== null && slotProps.data.ins3.length > 0">Hours: {{ slotProps.data.ins3 }} <br /></span>
                                 <span v-if="slotProps.data.note1 !== null && slotProps.data.note1.length > 0"><b>Notes:</b><br />{{ slotProps.data.note1 }} <br /></span>
                                 <span v-if="slotProps.data.note2 !== null && slotProps.data.note2.length > 0">{{ slotProps.data.note2 }} <br /></span>
                                 <span v-if="slotProps.data.note3 !== null && slotProps.data.note3.length > 0">{{ slotProps.data.note3 }} <br /></span>
+                                <span v-if="slotProps.data.note4 !== null && slotProps.data.note4.length > 0"><br /><b>{{ slotProps.data.note4 }} </b><br /></span>
+                                <span v-if="slotProps.data.note5 !== null && slotProps.data.note5.length > 0"><br /><b>{{ slotProps.data.note5 }} </b><br /></span>
                             </div>
                         </div>
                     </template>
