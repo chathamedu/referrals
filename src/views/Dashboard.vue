@@ -124,7 +124,7 @@ watch(
     <div class="grid">
         <div class="col-12">
             <div class="card">
-                <h5>Chatham University Referrals</h5>
+                <h5>Chatham University's Student Health Services Referrals</h5>
                 <DataTable
                     :value="referrals"
                     v-model:expandedRows="expandedRows"

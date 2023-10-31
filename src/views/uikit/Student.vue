@@ -35,8 +35,8 @@ const toggle = () => {
     <div class="grid">
         <div class="col-12 md:col-6">
             <div class="card">
-                <Panel header="Kundhavaidvi Balamurugan" :toggleable="false">
-                    <p class="line-height-3 m-0">Chatham University Student, Intern 2023</p>
+                <Panel header="Student Health Services" :toggleable="false">
+                    <p class="line-height-3 m-0"><b>Contact information:</b><br /><br />Email: studenthealth@chatham.edu <br />Phone:412-365-1714</p>
                 </Panel>
             </div>
         </div>
