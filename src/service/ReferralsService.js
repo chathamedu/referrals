@@ -14,28 +14,32 @@ export default class ReferralsService {
                 let x = Papa.parse(d);
                 x.data.splice(x.data.length - 1, 1);
                 x.data.splice(0, 1);
-                x.data.forEach((row) => {
+                x.data.forEach((col) => {
+                    if (col[1] === '' && col[2] > '') {
+                        col[1] = col[2];
+                        col[2] = '';
+                    }
                     let rec = {
-                        category: row[0],
-                        name: row[1],
-                        business: row[2],
-                        address1: row[3],
-                        suite: row[4],
-                        address2: row[5],
-                        city: row[6],
-                        state: row[7],
-                        zip: row[8],
-                        phone: row[9],
-                        fax: row[10],
-                        email: row[11],
-                        ins1: row[12],
-                        ins2: row[13],
-                        ins3: row[14],
-                        note1: row[15],
-                        note2: row[16],
-                        note3: row[17],
-                        note4: row[18],
-                        note5: row[19]
+                        category: col[0],
+                        name: col[1],
+                        business: col[2],
+                        address1: col[3],
+                        suite: col[4],
+                        address2: col[5],
+                        city: col[6],
+                        state: col[7],
+                        zip: col[8],
+                        phone: col[9],
+                        fax: col[10],
+                        email: col[11],
+                        ins1: col[12],
+                        ins2: col[13],
+                        ins3: col[14],
+                        note1: col[15],
+                        note2: col[16],
+                        note3: col[17],
+                        note4: col[18],
+                        note5: col[19]
                     };
                     records.push(rec);
                 });
