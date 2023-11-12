@@ -10,7 +10,7 @@ const model = ref([
     },
     {
         label: 'About',
-        items: [{ label: 'Contact Details', icon: 'pi pi-fw pi-user', to: '/uikit/student' }]
+        items: [{ label: 'Contact Details', icon: 'pi pi-fw pi-user', to: '/contact' }]
     }
 ]);
 </script>
