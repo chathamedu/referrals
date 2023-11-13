@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onBeforeMount, onMounted, ref, watch } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
 import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import ReferralsService from '@/service/ReferralsService';
@@ -7,16 +7,27 @@ import ReferralsService from '@/service/ReferralsService';
 const filters1 = ref(null);
 const loading1 = ref(null);
 const referrals = ref(null);
-const expandedRows = ref([]);
-
+const categories = ref(null);
 const referralsService = new ReferralsService();
+const selectedRecord = ref(null);
+const recordDialog = ref(false);
+const dt = ref(null);
+
+const viewRecord = (record) => {
+    selectedRecord.value = { ...record };
+    console.log(selectedRecord);
+    recordDialog.value = true;
+};
 
 const initFilters1 = () => {
     filters1.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         category: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
         name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
-        address1: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] }
+        address1: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
+        address2: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
+        city: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
+        zip: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] }
     };
 };
 const clearFilter1 = () => {
@@ -38,12 +49,26 @@ const referralsTotal = (category) => {
 const { isDarkTheme } = useLayout();
 
 const lineOptions = ref(null);
+onBeforeMount(() => {
+    initFilters1();
+});
 onMounted(() => {
     loading1.value = false;
 
     referralsService.getReferralDataFetch().then((data) => {
         referrals.value = data;
-        //   console.log(data);
+        let set1 = new Set();
+        let arr1 = [];
+        data.forEach((rec) => {
+            set1.add(rec.category);
+        });
+        set1.forEach((rec) => {
+            let obj = {};
+            obj.category = rec;
+            arr1.push(obj);
+        });
+        categories.value = arr1;
+        console.log(arr1);
     });
     initFilters1();
 });
@@ -124,24 +149,22 @@ watch(
     <div class="grid">
         <div class="col-12">
             <div class="card">
-                <h5>Chatham University's Student Health Services Referrals</h5>
+                <h5>Filter Menu New</h5>
                 <DataTable
+                    ref="dt"
                     :value="referrals"
-                    v-model:expandedRows="expandedRows"
-                    rowGroupMode="subheader"
-                    groupRowsBy="category"
-                    sortMode="single"
-                    sortField="category"
-                    :sortOrder="1"
-                    scrollable
-                    scrollHeight="600px"
-                    v-model:filters="filters1"
-                    filterDisplay="menu"
+                    v-model:selection="selectedRecord"
+                    dataKey="id"
+                    :paginator="true"
+                    :rows="10"
+                    :loading="loading1"
                     :filters="filters1"
-                    responsiveLayout="scroll"
-                    :globalFilterFields="['category', 'name']"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    :rowsPerPageOptions="[5, 10, 25]"
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+                    responsiveLayout="scroll"                    
                 >
-                    <!--template #header>
+                    <template #header>
                         <div class="flex justify-content-between flex-column sm:flex-row">
                             <Button type="button" icon="pi pi-filter-slash" label="Clear" class="p-button-outlined mb-2" @click="clearFilter1()" />
                             <span class="p-input-icon-left mb-2">
@@ -149,56 +172,72 @@ watch(
                                 <InputText v-model="filters1['global'].value" placeholder="Keyword Search" style="width: 100%" />
                             </span>
                         </div>
-                    </template-->
-                    <template #empty> No referrals found. </template>
-                    <template #loading> Loading referrals data. Please wait. </template>
-
-                    <Column :expander="true" headerStyle="min-width: 3rem" />
-                    <Column field="name" header="Name" style="min-width: 200px"></Column>
-                    <Column header="Address" style="min-width: 300px">
-                        <template #body="slotProps">{{ slotProps.data.address1 }} {{ slotProps.data.address2 }}{{ slotProps.data.city }} {{ slotProps.data.state }} {{ slotProps.data.zip }}</template>
+                    </template>
+                    <template #empty> No customers found. </template>
+                    <template #loading> Loading customers data. Please wait. </template>
+                    <Column headerStyle="min-width:2rem;">
+                        <template #body="slotProps">
+                            <Button icon="pi pi-eye" class="p-button-rounded p-button-success mr-2" @click="viewRecord(slotProps.data)" />
+                        </template>
+                    </Column>
+                    <Column field="category" header="Category" :sortable="true" style="min-width: 14rem">
+                        <template #body="{ data }">
+                            <span style="margin-left: 0.5em; vertical-align: middle" class="image-text">{{ data.category }}</span>
+                        </template>
+                    </Column>
+                    <Column field="name" header="Name" :sortable="true" style="min-width: 12rem">
+                        <template #body="{ data }">
+                            {{ data.name }}
+                        </template>
+                    </Column>
+                    <Column header="Address" filterField="country.name" style="min-width: 12rem">
+                        <template #body="{ data }">
+                            <span style="margin-left: 0.5em; vertical-align: middle" class="image-text">{{ data.address1 }} {{ data.address2 }} {{ data.city }} {{ data.state }} {{ data.zip }}</span>
+                        </template>
                     </Column>
                     <template #expansion="slotProps">
+
+                    </template>
+                </DataTable>
+                <Dialog v-model:visible="recordDialog" :style="{ width: '600px' }" header="Referrals Details" :modal="true" class="p-fluid">
+                    <div class="flex align-items-center justify-content-center">
                         <div class="p-3">
-                            <h5>{{ slotProps.data.name }}</h5>
+                            <h5>{{ selectedRecord.name }}</h5>
                             <div>
-                                <span v-if="slotProps.data.business !== null && slotProps.data.business.length > 0">{{ slotProps.data.business }} <br /></span>
-                                <span v-if="slotProps.data.address1 !== null && slotProps.data.address1.length > 0">{{ slotProps.data.address1 }} <br /></span>
-                                <span v-if="slotProps.data.suite !== null && slotProps.data.suite.length > 0">{{ slotProps.data.suite }} <br /></span>
-                                <span v-if="slotProps.data.address2 !== null && slotProps.data.address2.length > 0">{{ slotProps.data.address2 }} <br /></span>
-                                <span v-if="slotProps.data.city !== null">{{ slotProps.data.city }} </span> <span v-if="slotProps.data.state !== null">{{ slotProps.data.state }}</span> <span v-if="slotProps.data.zip !== null">{{ slotProps.data.zip }} <br /><br /></span>
-                                <span v-if="slotProps.data.tel1 !== null && slotProps.data.tel1.length > 0"
-                                    >Phone: <a :href="'tel:' + slotProps.data.tel1">{{ slotProps.data.phone }}</a> <br
+                                <span v-if="selectedRecord.business !== null && selectedRecord.business.length > 0">{{ selectedRecord.business }} <br /></span>
+                                <span v-if="selectedRecord.address1 !== null && selectedRecord.address1.length > 0">{{ selectedRecord.address1 }} <br /></span>
+                                <span v-if="selectedRecord.suite !== null && selectedRecord.suite.length > 0">{{ selectedRecord.suite }} <br /></span>
+                                <span v-if="selectedRecord.address2 !== null && selectedRecord.address2.length > 0">{{ selectedRecord.address2 }} <br /></span>
+                                <span v-if="selectedRecord.city !== null">{{ selectedRecord.city }} </span> <span v-if="selectedRecord.state !== null">{{ selectedRecord.state }}</span> <span v-if="selectedRecord.zip !== null">{{ selectedRecord.zip }} <br /><br /></span>
+                                <span v-if="selectedRecord.tel1 !== null && selectedRecord.tel1.length > 0"
+                                    >Phone: <a :href="'tel:' + selectedRecord.tel1">{{ selectedRecord.phone }}</a> <br
                                 /></span>
-                                <span v-if="slotProps.data.tel2 !== null && slotProps.data.tel2.length > 0">Phone: {{ slotProps.data.tel2 }} <br /></span>
-                                <span v-if="slotProps.data.fax !== null && slotProps.data.fax.length > 0">Fax: {{ slotProps.data.fax }} <br /></span>
-                                <span v-if="slotProps.data.email !== null && slotProps.data.email.length > 0"
-                                    >Email: <a :href="'mailto:' + slotProps.data.email">{{ slotProps.data.email }}</a> <br
+                                <span v-if="selectedRecord.tel2 !== null && selectedRecord.tel2.length > 0">Phone: {{ selectedRecord.tel2 }} <br /></span>
+                                <span v-if="selectedRecord.fax !== null && selectedRecord.fax.length > 0">Fax: {{ selectedRecord.fax }} <br /></span>
+                                <span v-if="selectedRecord.email !== null && selectedRecord.email.length > 0"
+                                    >Email: <a :href="'mailto:' + selectedRecord.email">{{ selectedRecord.email }}</a> <br
                                 /></span>
-                                <span v-if="slotProps.data.ins1 !== null && slotProps.data.ins1.length > 0"
-                                    >Website: <a :href="slotProps.data.ins1"> {{ slotProps.data.ins1 }} </a> <br
+                                <span v-if="selectedRecord.ins1 !== null && selectedRecord.ins1.length > 0"
+                                    >Website: <a :href="selectedRecord.ins1"> {{ selectedRecord.ins1 }} </a> <br
                                 /></span>
-                                <span v-if="slotProps.data.ins2 !== null && slotProps.data.ins2.length > 0">Insurance: {{ slotProps.data.ins2 }} <br /></span>
-                                <span v-if="slotProps.data.ins3 !== null && slotProps.data.ins3.length > 0">Hours: {{ slotProps.data.ins3 }} <br /></span>
-                                <span v-if="slotProps.data.note1 !== null && slotProps.data.note1.length > 0"><br /><b>Notes:</b><br />{{ slotProps.data.note1 }} <br /></span>
-                                <span v-if="slotProps.data.note2 !== null && slotProps.data.note2.length > 0">{{ slotProps.data.note2 }} <br /></span>
-                                <span v-if="slotProps.data.note3 !== null && slotProps.data.note3.length > 0">{{ slotProps.data.note3 }} <br /></span>
-                                <span v-if="slotProps.data.note4 !== null && slotProps.data.note4.length > 0"
-                                    ><br /><b>{{ slotProps.data.note4 }} </b><br
+                                <span v-if="selectedRecord.ins2 !== null && selectedRecord.ins2.length > 0">Insurance: {{ selectedRecord.ins2 }} <br /></span>
+                                <span v-if="selectedRecord.ins3 !== null && selectedRecord.ins3.length > 0">Hours: {{ selectedRecord.ins3 }} <br /></span>
+                                <span v-if="selectedRecord.note1 !== null && selectedRecord.note1.length > 0"><br /><b>Notes:</b><br />{{ selectedRecord.note1 }} <br /></span>
+                                <span v-if="selectedRecord.note2 !== null && selectedRecord.note2.length > 0">{{ selectedRecord.note2 }} <br /></span>
+                                <span v-if="selectedRecord.note3 !== null && selectedRecord.note3.length > 0">{{ selectedRecord.note3 }} <br /></span>
+                                <span v-if="selectedRecord.note4 !== null && selectedRecord.note4.length > 0"
+                                    ><br /><b>{{ selectedRecord.note4 }} </b><br
                                 /></span>
-                                <span v-if="slotProps.data.note5 !== null && slotProps.data.note5.length > 0"
-                                    ><br /><b>{{ slotProps.data.note5 }} </b><br
+                                <span v-if="selectedRecord.note5 !== null && selectedRecord.note5.length > 0"
+                                    ><br /><b>{{ selectedRecord.note5 }} </b><br
                                 /></span>
                             </div>
                         </div>
+                    </div>
+                    <template #footer>
+                        <Button label="Close" icon="pi pi-times" class="p-button-text" @click="recordDialog = false" />
                     </template>
-                    <template #groupheader="slotProps">
-                        <span class="image-text font-bold ml-2">{{ slotProps.data.category }}</span>
-                    </template>
-                    <template #groupfooter="slotProps">
-                        <td style="text-align: right" class="text-bold pr-6">Total Referrals: {{ referralsTotal(slotProps.data.category) }}</td>
-                    </template>
-                </DataTable>
+                </Dialog>
             </div>
         </div>
     </div>
