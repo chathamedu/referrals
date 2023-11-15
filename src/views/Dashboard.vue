@@ -8,10 +8,13 @@ const filters1 = ref(null);
 const loading1 = ref(null);
 const referrals = ref(null);
 const categories = ref(null);
+const categoryOption = ref(null);
 const referralsService = new ReferralsService();
 const selectedRecord = ref(null);
 const recordDialog = ref(false);
 const dt = ref(null);
+const referralsFiltered = ref(null);
+const selectedRecord1 = ref(null);
 
 const viewRecord = (record) => {
     selectedRecord.value = { ...record };
@@ -22,7 +25,8 @@ const viewRecord = (record) => {
 const initFilters1 = () => {
     filters1.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        category: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
+        //category: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
+        category: { value: null, matchMode: FilterMatchMode.IN },
         name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
         address1: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
         address2: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
@@ -32,6 +36,8 @@ const initFilters1 = () => {
 };
 const clearFilter1 = () => {
     initFilters1();
+    referralsFiltered.value = referrals.value;
+    categoryOption.value = [];
 };
 const referralsTotal = (category) => {
     let total = 0;
@@ -68,10 +74,32 @@ onMounted(() => {
             arr1.push(obj);
         });
         categories.value = arr1;
-        console.log(arr1);
+        referralsFiltered.value = data;
     });
-    initFilters1();
 });
+
+const applyCategory = () => {
+    let values = new Set();
+    if (categoryOption.value) {
+        categoryOption.value.forEach((rec) => {
+            if (rec && rec.category) {
+                values.add(rec.category);
+            }
+        });
+    }
+    let records = [];
+    if (values.size > 0) {
+        referrals.value.forEach((rec) => {
+            if (values.has(rec.category)) {
+                records.push(rec);
+            }
+        });
+    } else {
+        records = referrals.value;
+    }
+    referralsFiltered.value = records;
+    // console.log(records);
+};
 const applyLightTheme = () => {
     lineOptions.value = {
         plugins: {
@@ -149,28 +177,40 @@ watch(
     <div class="grid">
         <div class="col-12">
             <div class="card">
-                <h5>Filter Menu New</h5>
+                <h5>Student Health Services Referrals</h5>
+
                 <DataTable
                     ref="dt"
-                    :value="referrals"
-                    v-model:selection="selectedRecord"
+                    :value="referralsFiltered"
+                    v-model:selection="selectedRecord1"
                     dataKey="id"
                     :paginator="true"
                     :rows="10"
                     :loading="loading1"
                     :filters="filters1"
+                    filterDisplay="menu"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    :rowsPerPageOptions="[5, 10, 25]"
+                    :rowsPerPageOptions="[5, 10, 25, 50]"
                     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
-                    responsiveLayout="scroll"                    
+                    responsiveLayout="scroll"
+                    :globalFilterFields="['category', 'name', 'address1', 'address2', 'city', 'zip']"
                 >
                     <template #header>
                         <div class="flex justify-content-between flex-column sm:flex-row">
-                            <Button type="button" icon="pi pi-filter-slash" label="Clear" class="p-button-outlined mb-2" @click="clearFilter1()" />
+                            <span class="mb-3 text-bold">
+                                <MultiSelect @change="applyCategory()" v-model="categoryOption" :options="categories" optionLabel="category" placeholder="All Categories" class="p-filter">
+                                    <template #option="slotProps">
+                                        <div class="p-multiselect-representative-option">
+                                            <span style="margin-left: 0.5em; vertical-align: middle" class="image-text">{{ slotProps.option.category }}</span>
+                                        </div>
+                                    </template>
+                                </MultiSelect>
+                            </span>
                             <span class="p-input-icon-left mb-2">
                                 <i class="pi pi-search" />
-                                <InputText v-model="filters1['global'].value" placeholder="Keyword Search" style="width: 100%" />
+                                <InputText v-model="filters1['global'].value" placeholder="Search Any in Referrals" style="width: 100%" />
                             </span>
+                            <Button type="button" icon="pi pi-filter-slash" label="Clear" class="p-button-outlined mb-2" @click="clearFilter1()" />
                         </div>
                     </template>
                     <template #empty> No customers found. </template>
@@ -190,14 +230,11 @@ watch(
                             {{ data.name }}
                         </template>
                     </Column>
-                    <Column header="Address" filterField="country.name" style="min-width: 12rem">
+                    <Column field="address1, address2, city, zip" header="Address" style="min-width: 12rem">
                         <template #body="{ data }">
                             <span style="margin-left: 0.5em; vertical-align: middle" class="image-text">{{ data.address1 }} {{ data.address2 }} {{ data.city }} {{ data.state }} {{ data.zip }}</span>
                         </template>
                     </Column>
-                    <template #expansion="slotProps">
-
-                    </template>
                 </DataTable>
                 <Dialog v-model:visible="recordDialog" :style="{ width: '600px' }" header="Referrals Details" :modal="true" class="p-fluid">
                     <div class="flex align-items-center justify-content-center">
